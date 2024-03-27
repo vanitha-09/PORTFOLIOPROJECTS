@@ -1,5 +1,4 @@
 SELECT * FROM portfolioproject.dbo.DeathData
-
 select * from portfolioproject..VaccinationData
 
 -- slect data tht we are going to use
@@ -7,6 +6,7 @@ select location, date, total_cases, new_cases, total_deaths, population
 from portfolioproject..DeathData
 where continent is not null 
 
+--Changing DataType
 alter table dbo.deathdata alter column total_deaths decimal(18,2)
 
 --total cases vs total deaths
@@ -26,7 +26,6 @@ where continent is not null
 order by 1, 2
 
 -- looking at countries with Highest Infection Rate compared to Population
-
 select location, population, max(total_cases) as highestInfectionCount,
 max(total_cases/population)*100 as percentpopulationInfected 
 from portfolioproject..DeathData
@@ -42,7 +41,6 @@ group by location
 order by TotalDeathCount desc
 
 -- LETS BREAK THINGS DOWN BY CONTINENT
-
 select location, max(CAST (total_deaths AS INT)) as TotalDeathCount
 from portfolioproject..DeathData
 where continent is null 
@@ -75,7 +73,7 @@ d.date=v.date
 where d.continent is not null
 order by 2,3
 
---rolling sum
+--rolling sum for vaccinations
 select d.continent, d.location, d.date, d.population, v.new_vaccinations,
 sum(convert(bigint, v.new_vaccinations)) over (partition by d.location order by 
 d.location, d.date)
@@ -85,6 +83,7 @@ join portfolioproject..VaccinationData v
 on d.location=v.location and
 d.date=v.date
 where d.continent is not null
+group by d.continent,d.location, d.date, d.population, v.new_vaccinations 
 order by 2,3
 
 --Using CTE
@@ -99,6 +98,7 @@ where d.continent is not null
 )
 select * from popvsvac
 
+-- Percentage of Rolling Vaccinations
 select *, (RollingVaccinations/population)*100 as rollingPerc from popvsvac
 
 -- Create Temp Table
@@ -131,3 +131,12 @@ sum(convert(bigint, v.new_vaccinations)) over (partition by d.location order by
 d.location, d.date) as RollingVaccinations from portfolioproject..DeathData d
 join portfolioproject..VaccinationData v on d.location=v.location and d.date=v.date
 where d.continent is not null 
+
+
+create view GlobalNumbers as
+select sum(new_cases) as total_cases, sum(cast(new_deaths as int)) as total_deaths, 
+sum(cast(new_deaths as int))/nullif(sum(new_cases),0)*100 as DeathPercentage
+from portfolioproject..DeathData
+where continent is not null
+--group by date
+--order by 1, 2
