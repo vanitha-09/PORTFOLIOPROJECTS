@@ -27,11 +27,17 @@ order by 1, 2
 
 -- looking at countries with Highest Infection Rate compared to Population
 select location, population, max(total_cases) as highestInfectionCount,
-max(total_cases/population)*100 as percentpopulationInfected 
+max(total_cases/population)*100 as PercentPopulationInfected 
 from portfolioproject..DeathData
 where continent is not null
 group by location, population
-order by percentpopulationInfected desc
+order by PercentPopulationInfected desc
+
+select location, population,date, max(total_cases) as highestInfectionCount,
+max(total_cases/population)*100 as PercentPopulationInfected 
+from portfolioproject..DeathData
+group by location, population, date
+order by PercentPopulationInfected desc
 
 -- showing countries with highest death count per population
 select location, max(total_deaths) as TotalDeathCount
@@ -54,7 +60,7 @@ where continent is not null
 group by continent
 order by TotalDeathCount Desc
 
--- Global Numbers
+-- Global Numbers-- Used for Tableau Visualisations
 
 select sum(new_cases) as total_cases, sum(cast(new_deaths as int)) as total_deaths, 
 sum(cast(new_deaths as int))/nullif(sum(new_cases),0)*100 as DeathPercentage
@@ -62,6 +68,14 @@ from portfolioproject..DeathData
 where continent is not null
 --group by date
 order by 1, 2
+--We take this out as they are not included in above queries and want to stay consistent
+-- European uninon is part of Europe
+Select location, sum(cast(new_deaths as int)) as TotalDeathCount
+from portfolioproject..DeathData
+where continent is null
+and location not in ('World', 'European Union', 'International','High income', 'Low income', 'Upper middle income', 'Lower middle income')
+group by location
+order by TotalDeathCount desc
 
 --looking at Total Population Vs Vaccinations
 
@@ -140,3 +154,41 @@ from portfolioproject..DeathData
 where continent is not null
 --group by date
 --order by 1, 2
+
+
+
+---------------------------For Tableau visualizations------------------------------
+
+--1--
+select sum(new_cases) as total_cases, sum(cast(new_deaths as int)) as total_deaths, 
+sum(cast(new_deaths as int))/nullif(sum(new_cases),0)*100 as DeathPercentage
+from portfolioproject..DeathData
+where continent is not null
+--group by date
+order by 1, 2
+
+--2--
+--We take this out as they are not included in above queries and want to stay consistent
+-- European uninon is part of Europe
+Select location, sum(cast(new_deaths as int)) as TotalDeathCount
+from portfolioproject..DeathData
+where continent is null
+and location not in ('World', 'European Union', 'International','High income', 'Low income', 'Upper middle income', 'Lower middle income')
+group by location
+order by TotalDeathCount desc
+
+--3--
+-- looking at countries with Highest Infection Rate compared to Population
+select location, population, max(total_cases) as highestInfectionCount,
+max(total_cases/population)*100 as PercentPopulationInfected 
+from portfolioproject..DeathData
+where continent is not null
+group by location, population
+order by PercentPopulationInfected desc
+
+--4--
+select location, population,date, max(total_cases) as highestInfectionCount,
+max(total_cases/population)*100 as PercentPopulationInfected 
+from portfolioproject..DeathData
+group by location, population, date
+order by PercentPopulationInfected desc
